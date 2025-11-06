@@ -34,6 +34,8 @@ namespace MagicVilla_VillaAPI
             app.MapControllers();
 
             app.Run();
+
+            
         }
     }
 }
