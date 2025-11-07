@@ -10,10 +10,17 @@ namespace MagicVilla_VillaAPI.Controllers
     [ApiController]
     public class VillaAPIController : ControllerBase
     {
+        private ILogger<VillaAPIController> _logger;
+
+        public VillaAPIController(ILogger<VillaAPIController> logger)
+        {
+            _logger = logger;
+        }
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VillaDTO>))]
         public ActionResult<IEnumerable<VillaDTO>> GetVillas()
         {
+            _logger.LogInformation("Getting all Villas");
             return Ok(VillaStore.villaList);
         }
 
@@ -29,6 +36,7 @@ namespace MagicVilla_VillaAPI.Controllers
             //}
             if (id == 0)
             {
+                _logger.LogError("Get Villa Error with Id " + id);
                 return BadRequest();
             }
 
@@ -68,12 +76,12 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult DeleteVilla(int id)
         {
-            if(id == 0)
+            if (id == 0)
             {
                 return BadRequest();
             }
             var villa = VillaStore.villaList.FirstOrDefault(v => v.Id == id);
-            if(villa == null)
+            if (villa == null)
             {
                 return NotFound();
             }
@@ -86,14 +94,14 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public IActionResult UpdateVilla(int id, [FromBody]VillaDTO updatedVilla)
+        public IActionResult UpdateVilla(int id, [FromBody] VillaDTO updatedVilla)
         {
-            if(updatedVilla == null || id != updatedVilla.Id)
+            if (updatedVilla == null || id != updatedVilla.Id)
             {
                 return BadRequest();
             }
             var villa = VillaStore.villaList.FirstOrDefault(v => v.Id == id);
-            if(villa == null)
+            if (villa == null)
             {
                 return NotFound();
             }
@@ -115,7 +123,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 return BadRequest();
             }
             var villa = VillaStore.villaList.FirstOrDefault(v => v.Id == id);
-            if(villa == null)
+            if (villa == null)
             {
                 return NotFound();
             }

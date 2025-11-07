@@ -9,7 +9,10 @@ namespace MagicVilla_VillaAPI
 
             // Add services to the container.
 
-            builder.Services.AddControllers().AddNewtonsoftJson();
+            builder.Services.AddControllers(option =>
+            {
+                //option.ReturnHttpNotAcceptable = true; //Default responses are not in Json anymore 
+            }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters(); //Adds Json and Xml possible responses
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
