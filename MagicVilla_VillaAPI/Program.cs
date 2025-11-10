@@ -1,5 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using MagicVilla_VillaAPI.Data;
 
 namespace MagicVilla_VillaAPI
 {
@@ -10,6 +12,11 @@ namespace MagicVilla_VillaAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddDbContext<AppDbContext>(option =>
+            {
+                option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultPostgreConnection"));
+            });
 
             Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
                 .WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
