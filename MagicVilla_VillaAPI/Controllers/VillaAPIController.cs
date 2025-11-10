@@ -1,4 +1,5 @@
-﻿using MagicVilla_VillaAPI.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using MagicVilla_VillaAPI.Data;
 using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO;
 using MagicVilla_VillaAPI.Utilities;
@@ -56,23 +57,18 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(VillaDTO))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<VillaDTO> CreateVilla(VillaDTO villaDTO)
+        public ActionResult<VillaCreateDTO> CreateVilla(VillaCreateDTO villaDTO)
         {
             if (villaDTO is null)
             {
                 return BadRequest(villaDTO);
             }
-            if (villaDTO.Id > 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
 
-            villaDTO.Id = _db.Villas.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
-            Villa villa = Conversions.DTOToVilla(villaDTO);
-            villa.CreatedDate = DateTime.Now;
+            Villa villa = Conversions.DTOToVillaCreate(villaDTO);
+            villa.CreatedDate = DateTime.Now.ToUniversalTime();
             _db.Villas.Add(villa);
             _db.SaveChanges();
-            return CreatedAtRoute("GetVillaById", new { Id = villaDTO.Id }, villaDTO);
+            return CreatedAtRoute("GetVillaById", new { Id = villa.Id }, villa);
 
         }
 
@@ -101,14 +97,14 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public IActionResult UpdateVilla(int id, [FromBody] VillaDTO updatedVilla)
+        public IActionResult UpdateVilla(int id, [FromBody] VillaUpdateDTO updatedVilla)
         {
             if (updatedVilla == null || id != updatedVilla.Id)
             {
                 return BadRequest();
             }
 
-            Villa villa = Conversions.DTOToVilla(updatedVilla);
+            Villa villa = Conversions.DTOToVillaUpdate(updatedVilla);
             _db.Update(villa);
             _db.SaveChanges();
             return NoContent();
@@ -119,24 +115,24 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaDTO> patchDTO)
+        public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaUpdateDTO> patchDTO)
         {
             if (patchDTO == null || id == 0)
             {
                 return BadRequest();
             }
-            var villa = _db.Villas.FirstOrDefault(v => v.Id == id);
+            var villa = _db.Villas.AsNoTracking().FirstOrDefault(v => v.Id == id);
             if (villa == null)
             {
                 return NotFound();
             }
-            VillaDTO villaDTO = Conversions.VillaToDTO(villa);
+            VillaUpdateDTO villaDTO = Conversions.VillaToDTOUpdate(villa);
             patchDTO.ApplyTo(villaDTO, ModelState);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            Villa updatedVilla = Conversions.DTOToVilla(villaDTO);
+            Villa updatedVilla = Conversions.DTOToVillaUpdate(villaDTO);
             _db.Update(updatedVilla);
             _db.SaveChanges();
             return NoContent();
