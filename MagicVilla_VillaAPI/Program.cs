@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using MagicVilla_VillaAPI.Data;
+using MagicVilla_VillaAPI.Repository.IRepository;
+using MagicVilla_VillaAPI.Repository;
 
 namespace MagicVilla_VillaAPI
 {
@@ -23,6 +25,8 @@ namespace MagicVilla_VillaAPI
                 .WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
             builder.Host.UseSerilog();
+
+            builder.Services.AddScoped<IVillaRepository, VillaRepository>();
 
             builder.Services.AddControllers(option =>
             {
