@@ -1,13 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MagicVilla_VillaAPI.Models.DTO
+namespace MagicVilla_VillaAPI.Models.DTO.VillaPack
 {
-    public class VillaUpdateDTO
+    public class VillaCreateDTO
     {
-        [Required]
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(30)]
         public string Name { get; set; }

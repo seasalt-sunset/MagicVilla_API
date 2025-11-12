@@ -11,7 +11,7 @@ namespace MagicVilla_VillaAPI.Data
         }
 
         public DbSet<Villa> Villas { get; set; }
-
+        public DbSet<VillaNumber> VillaNumbers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelbuilder)
         {
             modelbuilder.Entity<Villa>(entity =>
@@ -82,6 +82,45 @@ namespace MagicVilla_VillaAPI.Data
                         CreatedDate = DateTime.Now.ToUniversalTime()
                     }
                     );
+            });
+
+            modelbuilder.Entity<VillaNumber>(entity =>
+            {
+                entity.HasData(
+                    new VillaNumber
+                    {
+                        VillaNo = 65472345,
+                        SpecialDetails = "On fire",
+                        CreatedDate = DateTime.Now.ToUniversalTime()
+                    },
+
+                    new VillaNumber
+                    {
+                        VillaNo = 45897235,
+                        SpecialDetails = "Susanna 8",
+                        CreatedDate = DateTime.Now.ToUniversalTime()
+                    },
+
+                    new VillaNumber
+                    {
+                        VillaNo = 67234783,
+                        SpecialDetails = "Subbuteo",
+                        CreatedDate = DateTime.Now.ToUniversalTime()
+                    },
+                    new VillaNumber
+                    {
+                        VillaNo = 21982387,
+                        SpecialDetails = "Tuple varie e altri collezionabili",
+                        CreatedDate = DateTime.Now.ToUniversalTime()
+                    },
+
+                    new VillaNumber
+                    {
+                        VillaNo = 1155664488,
+                        SpecialDetails = "Highway In The Sky... For Final Rush",
+                        CreatedDate = DateTime.Now.ToUniversalTime()
+                    }
+                );
             });
         }
     }
