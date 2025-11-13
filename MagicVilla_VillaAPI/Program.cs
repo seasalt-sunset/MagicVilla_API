@@ -27,6 +27,7 @@ namespace MagicVilla_VillaAPI
             builder.Host.UseSerilog();
 
             builder.Services.AddScoped<IVillaRepository, VillaRepository>();
+            builder.Services.AddScoped<IVillaNumberRepository, VillaNumberRepository>();
 
             builder.Services.AddControllers(option =>
             {

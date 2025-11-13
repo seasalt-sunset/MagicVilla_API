@@ -15,7 +15,7 @@ namespace MagicVilla_VillaAPI.Repository
 
         public async Task UpdateAsync(VillaNumber entity)
         {
-            await _db.AddAsync(entity);
+            _db.Update(entity);
             await SaveAsync();
         }
     }
