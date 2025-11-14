@@ -50,7 +50,15 @@ namespace MagicVilla_VillaAPI.Controllers
             }
 
         }
-
+        /// <summary>
+        /// Retrieves the details of a specific villa number by its unique identifier.
+        /// </summary>
+        /// <remarks>This endpoint returns status code 200 (OK) with the villa number details if
+        /// successful. If the specified identifier is zero, a 400 (Bad Request) is returned. If no villa number is
+        /// found with the given identifier, a 404 (Not Found) is returned.</remarks>
+        /// <param name="id">The unique identifier of the villa number to retrieve. Must be a non-zero integer.</param>
+        /// <returns>An ActionResult containing an APIResponse with the villa number details if found; returns a 400 Bad Request
+        /// if the identifier is zero, or a 404 Not Found if no villa number exists with the specified identifier.</returns>
         [HttpGet("number/{id:int}", Name = "GetVillaNumberById")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VillaNumberDTO))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -103,12 +111,24 @@ namespace MagicVilla_VillaAPI.Controllers
                     return BadRequest(_response);
 
                 }
+                if (await _dbVillaNumbers.GetAsync(v => v.VillaNo == villaNumberCreateDTO.VillaNo) != null)
+                {
+                    _logger.LogError($"Villa number {villaNumberCreateDTO.VillaNo} already exists!");
+                    ModelState.AddModelError("Custom error", "VillaNo already exists!");
+                    return BadRequest(ModelState);
+                }
+                if (await _dbVillaNumbers.GetAsync(v => v.VillaId == villaNumberCreateDTO.VillaId) == null)
+                {
+                    _logger.LogError($"Villa number {villaNumberCreateDTO.VillaId} invalid!");
+                    ModelState.AddModelError("Custom error", "VillaId invalid!");
+                    return BadRequest(ModelState);
+                }
                 VillaNumber createVillaNumber = _mapper.Map<VillaNumber>(villaNumberCreateDTO);
                 createVillaNumber.CreatedDate = DateTime.Now.ToUniversalTime();
                 await _dbVillaNumbers.CreateAsync(createVillaNumber);
                 _response.StatusCode = HttpStatusCode.OK;
                 _response.Result = createVillaNumber;
-                return CreatedAtRoute("GetVillaNumberById", new { VillaNo = createVillaNumber.VillaNo }, _response);
+                return CreatedAtRoute("GetVillaNumberById", new { id = villaNumberCreateDTO.VillaNo }, _response);
             }
             catch (Exception e)
             {
@@ -163,6 +183,12 @@ namespace MagicVilla_VillaAPI.Controllers
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
                 return BadRequest(_response);
+            }
+            if (await _dbVillaNumbers.GetAsync(v => v.VillaId == updatedVillaNumberDTO.VillaId) == null)
+            {
+                _logger.LogError($"Villa number {updatedVillaNumberDTO.VillaId} invalid!");
+                ModelState.AddModelError("Custom error", "VillaId invalid!");
+                return BadRequest(ModelState);
             }
             VillaNumber villaNumber = _mapper.Map<VillaNumber>(updatedVillaNumberDTO);
             await _dbVillaNumbers.UpdateAsync(villaNumber);

@@ -91,34 +91,39 @@ namespace MagicVilla_VillaAPI.Data
                     {
                         VillaNo = 65472345,
                         SpecialDetails = "On fire",
-                        CreatedDate = DateTime.Now.ToUniversalTime()
+                        CreatedDate = DateTime.Now.ToUniversalTime(),
+                        VillaId = 5
                     },
 
                     new VillaNumber
                     {
                         VillaNo = 45897235,
                         SpecialDetails = "Susanna 8",
-                        CreatedDate = DateTime.Now.ToUniversalTime()
+                        CreatedDate = DateTime.Now.ToUniversalTime(),
+                        VillaId = 4
                     },
 
                     new VillaNumber
                     {
                         VillaNo = 67234783,
                         SpecialDetails = "Subbuteo",
-                        CreatedDate = DateTime.Now.ToUniversalTime()
+                        CreatedDate = DateTime.Now.ToUniversalTime(),
+                        VillaId = 3
                     },
                     new VillaNumber
                     {
                         VillaNo = 21982387,
                         SpecialDetails = "Tuple varie e altri collezionabili",
-                        CreatedDate = DateTime.Now.ToUniversalTime()
+                        CreatedDate = DateTime.Now.ToUniversalTime(),
+                        VillaId = 2
                     },
 
                     new VillaNumber
                     {
                         VillaNo = 1155664488,
                         SpecialDetails = "Highway In The Sky... For Final Rush",
-                        CreatedDate = DateTime.Now.ToUniversalTime()
+                        CreatedDate = DateTime.Now.ToUniversalTime(),
+                        VillaId = 1
                     }
                 );
             });
