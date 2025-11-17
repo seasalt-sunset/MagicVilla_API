@@ -1,0 +1,63 @@
+﻿using AutoMapper;
+using MagicVilla_VillaAPI.Models;
+using MagicVilla_VillaAPI.Models.DTO.User;
+using MagicVilla_VillaAPI.Repository;
+using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
+
+namespace MagicVilla_VillaAPI.Controllers
+{
+    [ApiController]
+    [Route("api/UserAPI")]
+    public class UserController : ControllerBase
+    {
+        private readonly IUserRepository _userRepo;
+        private APIResponse _response;
+
+        public UserController(IUserRepository userRepo)
+        {
+            _userRepo = userRepo;
+            _response = new();
+        }
+        public async Task<IActionResult> Login(LoginRequestDTO loginRequest)
+        {
+            var response = await _userRepo.Login(loginRequest);
+            if(response == null || string.IsNullOrEmpty(response.Token))
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Incorrect username and/or password");
+                return BadRequest(_response);
+            }
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return Ok(_response);
+
+        }
+
+        public async Task<IActionResult> Registration(RegistrationRequestDTO registrationRequest)
+        {
+            bool existsUsername = _userRepo.IsExistingUser(registrationRequest.UserName);
+
+            if (existsUsername)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Username already exists!");
+                return BadRequest(_response);
+            }
+            LocalUser newUser = await _userRepo.Registration(registrationRequest);
+            if(newUser is null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Error while registering!");
+                return BadRequest(_response);
+            }
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return Ok(_response);
+        }
+    }
+}
