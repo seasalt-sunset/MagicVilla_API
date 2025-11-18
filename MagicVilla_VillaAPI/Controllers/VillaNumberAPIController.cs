@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace MagicVilla_VillaAPI.Controllers
@@ -30,8 +31,10 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VillaNumberDTO>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<APIResponse>> GetVillaNumbers()
         {
             try
@@ -50,19 +53,13 @@ namespace MagicVilla_VillaAPI.Controllers
             }
 
         }
-        /// <summary>
-        /// Retrieves the details of a specific villa number by its unique identifier.
-        /// </summary>
-        /// <remarks>This endpoint returns status code 200 (OK) with the villa number details if
-        /// successful. If the specified identifier is zero, a 400 (Bad Request) is returned. If no villa number is
-        /// found with the given identifier, a 404 (Not Found) is returned.</remarks>
-        /// <param name="id">The unique identifier of the villa number to retrieve. Must be a non-zero integer.</param>
-        /// <returns>An ActionResult containing an APIResponse with the villa number details if found; returns a 400 Bad Request
-        /// if the identifier is zero, or a 404 Not Found if no villa number exists with the specified identifier.</returns>
+        
         [HttpGet("number/{id:int}", Name = "GetVillaNumberById")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VillaNumberDTO))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<APIResponse>> GetVillaNumber(int id)
         {
             try
@@ -97,9 +94,12 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpPost("number")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(VillaNumberCreateDTO))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> CreateVillaNumber(VillaNumberCreateDTO villaNumberCreateDTO)
         {
             try
@@ -140,9 +140,12 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpDelete("number/{id:int}", Name = "DeleteVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> DeleteVillaNumber(int id)
         {
             try
@@ -174,8 +177,11 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpPut("number/{id:int}", Name = "UpdateVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> UpdateVillaNumber(int id, [FromBody] VillaNumberUpdateDTO updatedVillaNumberDTO)
         {
             if (updatedVillaNumberDTO == null || id != updatedVillaNumberDTO.VillaNo)
@@ -198,9 +204,12 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpPatch("number/{id:int}", Name = "UpdatePartialVillaNumber")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> UpdatePartialVillaNumber(int id, JsonPatchDocument<VillaNumberUpdateDTO> patchDTO)
         {
             if (patchDTO is null || id == 0)
