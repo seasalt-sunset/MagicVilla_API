@@ -9,7 +9,7 @@ using System.Net;
 namespace MagicVilla_VillaAPI.Controllers
 {
     [ApiController]
-    [Route("api/UserAPI")]
+    [Route("api/UserAuth")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
@@ -20,10 +20,12 @@ namespace MagicVilla_VillaAPI.Controllers
             _userRepo = userRepo;
             _response = new();
         }
+
+        [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequestDTO loginRequest)
         {
-            var response = await _userRepo.Login(loginRequest);
-            if(response == null || string.IsNullOrEmpty(response.Token))
+            var responseLogin = await _userRepo.Login(loginRequest);
+            if(responseLogin == null || string.IsNullOrEmpty(responseLogin.Token))
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
@@ -32,10 +34,12 @@ namespace MagicVilla_VillaAPI.Controllers
             }
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
+            _response.Result = responseLogin;
             return Ok(_response);
 
         }
 
+        [HttpPost("register")]
         public async Task<IActionResult> Registration(RegistrationRequestDTO registrationRequest)
         {
             bool existsUsername = _userRepo.IsExistingUser(registrationRequest.UserName);
@@ -57,6 +61,7 @@ namespace MagicVilla_VillaAPI.Controllers
             }
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
+            _response.Result = newUser;
             return Ok(_response);
         }
     }

@@ -9,5 +9,9 @@ namespace MagicVilla_VillaAPI.Models
         public List<string> ErrorMessages { get; set; }
         public object Result { get; set; }
 
+        public APIResponse()
+        {
+            ErrorMessages = new List<string>();
+        }
     }
 }
