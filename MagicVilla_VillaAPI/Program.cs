@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using System.Net;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MagicVilla_VillaAPI
 {
@@ -26,8 +27,11 @@ namespace MagicVilla_VillaAPI
 
             builder.Services.AddAutoMapper(typeof(MappingConfig));
 
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
-                .WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
 
             builder.Host.UseSerilog();
 
@@ -89,8 +93,53 @@ namespace MagicVilla_VillaAPI
                         new List<string>()
                     }
                 });
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "MagicVilla API 1 - The rise of the titan",
+                    Version = "v1",
+                    Description = "A lot of luxury villas for people who make like super big money???",
+                    TermsOfService = new Uri("https://www.thegameawards.com"),
+                    Contact = new OpenApiContact()
+                    {
+                        Name = "Super Gundam",
+                        Url = new Uri("https://www.lucadirisio.com")
+                    },
+                    License = new OpenApiLicense()
+                    {
+                        Name = "Dragon Ball GP",
+                        Url = new Uri("https://www.motogp.com")
+                    }
+                });
+                options.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Title = "MagicVilla API 2 - The revenge of my grandma",
+                    Version = "v2",
+                    Description = "My grandma woke up, somebody help me, I'm gonna be trapped inside her new ponzi scheme!!!!!!!!",
+                    TermsOfService = new Uri("https://www.thegameawards.com"),
+                    Contact = new OpenApiContact()
+                    {
+                        Name = "Super Gundam",
+                        Url = new Uri("https://www.lucadirisio.com")
+                    },
+                    License = new OpenApiLicense()
+                    {
+                        Name = "Dragon Ball GP",
+                        Url = new Uri("https://www.motogp.com")
+                    }
+                });
             });
 
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ReportApiVersions = true;
+            });
+            builder.Services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -100,6 +149,7 @@ namespace MagicVilla_VillaAPI
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "MagicVilla_VillaAPI v1");
+                    options.SwaggerEndpoint("/swagger/v2/swagger.json", "MagicVilla_VillaAPI v2");
                 });
             }
 

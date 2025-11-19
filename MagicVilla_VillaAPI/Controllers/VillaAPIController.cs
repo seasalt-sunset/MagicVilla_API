@@ -12,8 +12,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MagicVilla_VillaAPI.Controllers
 {
-    [Route("api/VillaAPI")]
+    [Route("api/v{version:apiVersion}/VillaAPI")]
     [ApiController]
+    [ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("2.0")]
     public class VillaAPIController : ControllerBase
     {
         private ILogger<VillaAPIController> _logger;
@@ -33,11 +35,36 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VillaDTO>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<APIResponse>> GetVillas()
         {
             try
             {
                 _logger.LogInformation("Getting all Villas");
+                List<Villa> allVillas = await _dbVilla.GetAllAsync();
+                _response.Result = _mapper.Map<List<VillaDTO>>(allVillas);
+                _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+            }
+            catch (Exception e)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { e.ToString() };
+                return BadRequest(_response);
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VillaDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [MapToApiVersion("2.0")]
+        public async Task<ActionResult<APIResponse>> GetVillas2()
+        {
+            try
+            {
+                _logger.LogInformation("Getting all Villas (but 2.0!!!!!!!!!!!!!!!!!!!!!!!!!!!)");
                 List<Villa> allVillas = await _dbVilla.GetAllAsync();
                 _response.Result = _mapper.Map<List<VillaDTO>>(allVillas);
                 _response.StatusCode = HttpStatusCode.OK;
