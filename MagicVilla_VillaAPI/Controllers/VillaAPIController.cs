@@ -36,12 +36,24 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult<APIResponse>> GetVillas()
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy, [FromQuery(Name = "Search")] string? search)
         {
             try
             {
                 _logger.LogInformation("Getting all Villas");
-                List<Villa> allVillas = await _dbVilla.GetAllAsync();
+                List<Villa> allVillas = new List<Villa>();
+                if (occupancy > 0)
+                {
+                    allVillas = await _dbVilla.GetAllAsync(v => v.Occupancy == occupancy);
+                }
+                else
+                {
+                    allVillas = await _dbVilla.GetAllAsync();
+                }
+                if (!string.IsNullOrEmpty(search))
+                {
+                    allVillas = allVillas.Where(v => v.Amenity.ToLower().Contains(search.ToLower()) || v.Name.ToLower().Contains(search.ToLower())).ToList();
+                }
                 _response.Result = _mapper.Map<List<VillaDTO>>(allVillas);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
