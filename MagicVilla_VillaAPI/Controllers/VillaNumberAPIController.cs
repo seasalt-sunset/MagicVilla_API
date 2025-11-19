@@ -35,6 +35,7 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<VillaNumberDTO>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[ResponseCache(Duration = 30)]
         public async Task<ActionResult<APIResponse>> GetVillaNumbers()
         {
             try

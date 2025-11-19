@@ -25,6 +25,8 @@ namespace MagicVilla_VillaAPI
                 option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultPostgreConnection"));
             });
 
+            builder.Services.AddResponseCaching();
+
             builder.Services.AddAutoMapper(typeof(MappingConfig));
 
             Log.Logger = new LoggerConfiguration()
@@ -59,6 +61,10 @@ namespace MagicVilla_VillaAPI
             });
             builder.Services.AddControllers(option =>
             {
+                option.CacheProfiles.Add("Default30", new CacheProfile()
+                {
+                    Duration = 30
+                });
                 //option.ReturnHttpNotAcceptable = true; //Default responses are not in Json anymore 
             }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters(); //Adds Json and Xml possible responses
 
