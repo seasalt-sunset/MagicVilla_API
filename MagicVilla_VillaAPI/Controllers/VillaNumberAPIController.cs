@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 
 namespace MagicVilla_VillaAPI.Controllers
@@ -36,15 +38,19 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         //[ResponseCache(Duration = 30)]
-        public async Task<ActionResult<APIResponse>> GetVillaNumbers([FromQuery(Name = "searchDetails")] string? search)
+        public async Task<ActionResult<APIResponse>> GetVillaNumbers([FromQuery(Name = "searchDetails")] string? search, int pageSize = 0, int pageCount = 1)
         {
             try
             {
                 _logger.LogInformation("Getting all villa numbers");
-                List<VillaNumber> allNumbers = await _dbVillaNumbers.GetAllAsync();
+                List<VillaNumber> allNumbers = new List<VillaNumber>();
                 if (!string.IsNullOrEmpty(search))
                 {
-                    allNumbers = allNumbers.Where(n => n.SpecialDetails.ToLower().Contains(search.ToLower())).ToList();
+                    allNumbers = await _dbVillaNumbers.GetAllAsync(n => n.SpecialDetails.ToLower().Contains(search.ToLower()), pageCount: pageCount, pageSize: pageSize);
+                }
+                else
+                {
+                    allNumbers = await _dbVillaNumbers.GetAllAsync();
                 }
                 _response.Result = _mapper.Map<List<VillaNumberDTO>>(allNumbers);
                 _response.StatusCode = HttpStatusCode.OK;
@@ -58,7 +64,7 @@ namespace MagicVilla_VillaAPI.Controllers
             }
 
         }
-        
+
         [HttpGet("number/{id:int}", Name = "GetVillaNumberById")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(VillaNumberDTO))]

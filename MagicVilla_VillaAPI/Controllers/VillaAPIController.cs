@@ -1,14 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using MagicVilla_VillaAPI.Data;
 using MagicVilla_VillaAPI.Models;
+using MagicVilla_VillaAPI.Models.DTO.VillaPack;
+using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
-using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Net;
-using MagicVilla_VillaAPI.Models.DTO.VillaPack;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Authorization;
 
 namespace MagicVilla_VillaAPI.Controllers
 {
@@ -36,24 +37,33 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy, [FromQuery(Name = "Search")] string? search)
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int occupancy, [FromQuery(Name = "Search")] string? search, int pageSize = 0, int pageCount = 0)
         {
             try
             {
                 _logger.LogInformation("Getting all Villas");
                 List<Villa> allVillas = new List<Villa>();
-                if (occupancy > 0)
+                if ((!string.IsNullOrEmpty(search)) && occupancy > 0)
                 {
-                    allVillas = await _dbVilla.GetAllAsync(v => v.Occupancy == occupancy);
+                    allVillas = await _dbVilla.GetAllAsync(v => 
+                    (v.Amenity.ToLower().Contains(search.ToLower())
+                    || v.Name.ToLower().Contains(search.ToLower())) && v.Occupancy == occupancy,
+                    pageSize: pageSize, pageCount: pageCount);
+                }
+                else if (!string.IsNullOrEmpty(search))
+                {
+                    allVillas = (await _dbVilla.GetAllAsync(v => v.Amenity.ToLower().Contains(search.ToLower()) || v.Name.ToLower().Contains(search.ToLower()), pageSize:pageSize, pageCount:pageCount));
+                }
+                else if (occupancy > 0)
+                {
+                    allVillas = await _dbVilla.GetAllAsync(v => v.Occupancy == occupancy, pageSize:pageSize, pageCount:pageCount);
                 }
                 else
                 {
-                    allVillas = await _dbVilla.GetAllAsync();
+                    allVillas = await _dbVilla.GetAllAsync(pageSize: pageSize, pageCount: pageCount);
                 }
-                if (!string.IsNullOrEmpty(search))
-                {
-                    allVillas = allVillas.Where(v => v.Amenity.ToLower().Contains(search.ToLower()) || v.Name.ToLower().Contains(search.ToLower())).ToList();
-                }
+                Pagination pagination = new() { PageSize = pageSize, PageCount = pageCount };
+                Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(pagination));
                 _response.Result = _mapper.Map<List<VillaDTO>>(allVillas);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
