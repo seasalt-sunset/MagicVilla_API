@@ -9,6 +9,8 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using MagicVilla_VillaAPI.Models;
 
 namespace MagicVilla_VillaAPI
 {
@@ -25,6 +27,7 @@ namespace MagicVilla_VillaAPI
                 option.UseNpgsql(builder.Configuration.GetConnectionString("DefaultPostgreConnection"));
             });
 
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
             builder.Services.AddResponseCaching();
 
             builder.Services.AddAutoMapper(typeof(MappingConfig));
