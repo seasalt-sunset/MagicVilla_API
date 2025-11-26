@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MagicVilla_VillaAPI.Repository
@@ -51,10 +52,24 @@ namespace MagicVilla_VillaAPI.Repository
                 };
             }
 
+            TokenResponseDTO allTokens = await CreateTokens(user);
+
+            LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
+            {
+                Token = allTokens.AccessToken,
+                RefreshToken = allTokens.RefreshToken,
+                RefreshTokenExpireDate = user.RefreshTokenExpireDate,
+                User = _mapper.Map<UserDTO>(user),
+                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault()
+            };
+            return loginResponseDTO;
+        }
+
+        public async Task<TokenResponseDTO> CreateTokens(ApplicationUser user)
+        {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretKey);
             var roles = await _userManager.GetRolesAsync(user);
-
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Subject = new ClaimsIdentity(new Claim[]
@@ -66,14 +81,18 @@ namespace MagicVilla_VillaAPI.Repository
                 SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
+            var accessToken = tokenHandler.CreateToken(tokenDescriptor);
+            string refreshToken = CreateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpireDate = DateTime.UtcNow.AddMinutes(10);
+            await _db.SaveChangesAsync();
+            return new TokenResponseDTO
             {
-                Token = tokenHandler.WriteToken(token),
-                User = _mapper.Map<UserDTO>(user),
-                Role = roles.FirstOrDefault()
+                UserId = user.Id,
+                AccessToken = tokenHandler.WriteToken(accessToken),
+                RefreshToken = refreshToken,
+                RefreshTokenExpireDate = user.RefreshTokenExpireDate
             };
-            return loginResponseDTO;
         }
 
         public async Task<UserDTO> Registration(RegistrationRequestDTO registrationRequest)
@@ -81,8 +100,9 @@ namespace MagicVilla_VillaAPI.Repository
             ApplicationUser user = new ApplicationUser()
             {
                 UserName = registrationRequest.UserName,
-                Name = registrationRequest.Name,
+                Name = registrationRequest.Name
             };
+            await GenerateAndSaveRefreshTokenAsync(user);
 
             try
             {
@@ -101,12 +121,55 @@ namespace MagicVilla_VillaAPI.Repository
                     return userDTO;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
 
             }
 
             return new UserDTO();
+        }
+
+        private string CreateRefreshToken()
+        {
+            var token = new byte[256];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(token);
+            return Convert.ToBase64String(token);
+        }
+
+        public async Task<string> GenerateAndSaveRefreshTokenAsync(ApplicationUser user)
+        {
+            user.RefreshToken = CreateRefreshToken();
+            user.RefreshTokenExpireDate = DateTime.UtcNow.AddMinutes(10);
+            await _db.SaveChangesAsync();
+            return user.RefreshToken;
+        }
+
+        public async Task<TokenResponseDTO> RefreshTokens(RefreshTokenRequestDTO request)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == request.UserId);
+            if (request.RefreshToken != user.RefreshToken || user == null)
+            {
+                return null;
+            }
+
+            TokenResponseDTO allTokens = await CreateTokens(user);
+
+
+            return allTokens;
+
+
+        }
+        public async Task<UserDTO> ValidateRefreshToken(string userId, string refreshToken)
+        {
+            ApplicationUser user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpireDate <= DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            return _mapper.Map<UserDTO>(user);
         }
     }
 }

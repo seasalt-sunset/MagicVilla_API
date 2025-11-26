@@ -3,6 +3,7 @@ using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO.User;
 using MagicVilla_VillaAPI.Repository;
 using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -64,6 +65,23 @@ namespace MagicVilla_VillaAPI.Controllers
             _response.IsSuccess = true;
             _response.Result = newUser;
             return Ok(_response);
+        }
+
+        [HttpPost("refresh-Token")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<APIResponse>> RefreshToken([FromBody] RefreshTokenRequestDTO request)
+        {
+            TokenResponseDTO refreshToken = await _userRepo.RefreshTokens(request);
+            if(refreshToken is null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.ErrorMessages.Add("Invalid userId or refresh token!");
+                return BadRequest(_response);
+            }
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = refreshToken;
+            return Ok(_response);
+
         }
     }
 }

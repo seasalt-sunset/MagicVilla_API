@@ -1,10 +1,9 @@
 ﻿namespace MagicVilla_VillaAPI.Models.DTO.User
 {
-    public class LoginResponseDTO
+    public class TokenResponseDTO
     {
-        public UserDTO User { get; set; }
-        public string Role { get; set; }
-        public string Token { get; set; }
+        public string UserId { get; set; }
+        public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime? RefreshTokenExpireDate { get; set; }
     }

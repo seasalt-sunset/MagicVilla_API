@@ -61,6 +61,18 @@ namespace MagicVilla_VillaAPI
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+                x.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.HttpContext.Request.Path.StartsWithSegments("/api/v1/UserAuth/refresh-Token")
+                        || context.HttpContext.Request.Path.StartsWithSegments("/api/v2/UserAuth/refresh-Token"))
+                        {
+                            context.Token = null;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
             builder.Services.AddControllers(option =>
             {
